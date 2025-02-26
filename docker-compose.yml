@@ -1,8 +1,8 @@
 version: '3'
 services:
   buildozer:
-    image: kivy/buildozer:latest  # استفاده از Docker image از پیش ساخته‌شده برای Buildozer
+    image: my-buildozer-image  # استفاده از image محلی
     volumes:
-      - .:/app  # mount کردن دایرکتوری فعلی به مسیر /app داخل کانتینر
-    working_dir: /app  # تنظیم مسیر کاری داخل کانتینر
-    command: buildozer -v android debug  # اجرای Buildozer برای ساخت APK
+      - .:/app
+    working_dir: /app
+    command: buildozer -v android debug
