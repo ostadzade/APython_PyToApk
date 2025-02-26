@@ -23,22 +23,14 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f "requirements.txt" ]; then pip install -r requirements.txt; else echo "⚠ requirements.txt not found!"; fi
 
-      - name: Clone PyToApk
+      - name: Build APK (Using Buildozer)
         run: |
-          git clone https://github.com/APython-project/PyToApk.git
-          if [ -d "PyToApk" ]; then echo "✅ PyToApk cloned successfully"; else echo "❌ Failed to clone PyToApk"; exit 1; fi
-
-      - name: Build APK
-        run: |
-          cd PyToApk
-          python build.py apk --sourceDir ../ --buildDebug || { echo "❌ Build failed!"; exit 1; }
-
-      - name: Check APK Output
-        run: |
-          if [ -f "PyToApk/output.apk" ]; then echo "✅ APK build successful"; else echo "❌ APK not found!"; exit 1; fi
+          pip install buildozer
+          buildozer init
+          buildozer -v android debug
 
       - name: Upload APK as artifact
-        uses: actions/upload-artifact@v4  # نسخه جدید
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
-          path: PyToApk/output.apk
+          path: bin/*.apk  # مسیر خروجی برای buildozer
