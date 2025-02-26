@@ -28,27 +28,37 @@ jobs:
 
       # مرحله ۴: نصب Android SDK و Build-Tools
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v2
+        uses: android-actions/setup-android@v3
         with:
-          build-tools-version: "30.0.3"  # نسخه Build-Tools مورد نیاز
-          platform-version: "30"         # نسخه پلتفرم اندروید مورد نیاز
-          ndk-version: "21.4.7075529"    # نسخه NDK مورد نیاز (اختیاری)
+          cmdline-tools-version: "latest"  # نصب cmdline-tools
+          build-tools-version: "30.0.3"   # نسخه Build-Tools مورد نیاز
+          platform-version: "30"          # نسخه پلتفرم اندروید مورد نیاز
+          ndk-version: "21.4.7075529"     # نسخه NDK مورد نیاز (اختیاری)
 
-      # مرحله ۵: پیکربندی Buildozer
+      # مرحله ۵: تنظیم متغیرهای محیطی
+      - name: Setup environment variables
+        run: |
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "/usr/local/lib/android/sdk/tools/bin" >> $GITHUB_PATH
+          echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
+          echo "/usr/local/lib/android/sdk/build-tools/30.0.3" >> $GITHUB_PATH
+
+      # مرحله ۶: پیکربندی Buildozer
       - name: Configure Buildozer
         run: |
           buildozer init
           # اعمال تنظیمات لازم در فایل buildozer.spec
           sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas/' buildozer.spec
 
-      # مرحله ۶: ساخت APK
+      # مرحله ۷: ساخت APK
       - name: Build APK
         run: |
-          export ANDROIDSDK="/usr/local/lib/android/sdk"  # تنظیم مسیر Android SDK
-          export ANDROIDNDK="/usr/local/lib/android/sdk/ndk/21.4.7075529"  # تنظیم مسیر NDK
+          export ANDROIDSDK="/usr/local/lib/android/sdk"
+          export ANDROIDNDK="/usr/local/lib/android/sdk/ndk/21.4.7075529"
           buildozer -v android debug
 
-      # مرحله ۷: آپلود فایل APK به عنوان خروجی
+      # مرحله ۸: آپلود فایل APK به عنوان خروجی
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
