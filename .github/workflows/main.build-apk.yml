@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APK with Docker Compose
 
 on:
   push:
@@ -10,102 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # مرحله ۱: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Git (Ensure Git is installed)
+      # مرحله ۲: Set up Docker Compose
+      - name: Set up Docker Compose
         run: |
-          sudo apt update
-          sudo apt install -y git
-          echo "🔍 Checking if Git is available..."
-          if ! command -v git &> /dev/null; then
-            echo "❌ Git is still missing. Adding it manually to PATH..."
-            export PATH=$PATH:/usr/bin:/usr/local/bin:/bin
-            echo "export PATH=$PATH:/usr/bin:/usr/local/bin:/bin" >> $HOME/.bashrc
-            source $HOME/.bashrc
-          fi
-          git --version
-          echo "✅ Git installed successfully."
+          # نصب Docker Compose
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
+          # اجرای Docker Compose
+          docker-compose up
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f "requirements.txt" ]; then pip install -r requirements.txt; else echo "⚠ requirements.txt not found!"; fi
-
-      - name: Install Buildozer & dependencies
-        run: |
-          sudo apt install -y zip unzip openjdk-17-jdk
-          python -m pip install --upgrade Cython
-          python -m pip install buildozer
-          sudo ln -s $(python -c "import site; print(site.USER_BASE)")/bin/buildozer /usr/local/bin/buildozer || echo "✅ Buildozer already linked."
-          echo "✅ Buildozer installed successfully."
-
-      - name: Verify Buildozer Installation
-        run: |
-          echo "🔍 Checking if Buildozer is available..."
-          if ! command -v buildozer &> /dev/null; then
-            echo "❌ Buildozer is still missing. Exiting."
-            exit 1
-          fi
-          buildozer --version
-          echo "✅ Buildozer is available."
-
-      - name: Install Android SDK & AIDL
-        run: |
-          sudo apt install -y unzip wget
-          
-          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools/
-          
-          mkdir -p $ANDROID_HOME/cmdline-tools/latest
-          mv $ANDROID_HOME/cmdline-tools/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
-          
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
-          
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;31.0.0" "cmdline-tools;latest" "ndk;23.1.7779620"
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
-          echo "✅ Android SDK & AIDL installed successfully."
-
-      - name: Initialize Buildozer
-        run: |
-          buildozer init
-          ls -lah
-
-      - name: Fix Buildozer SDK Path (Force Update)
-        run: |
-          if [ -f "buildozer.spec" ]; then
-            sed -i 's|tools/bin/sdkmanager|cmdline-tools/latest/bin/sdkmanager|g' buildozer.spec
-            echo "✅ buildozer.spec path fixed."
-          else
-            echo "⚠ buildozer.spec not found. Skipping fix."
-          fi
-
-      - name: Build APK using Buildozer
-        env:
-          ANDROID_HOME: $HOME/.buildozer/android/platform/android-sdk
-          PATH: $ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:/usr/local/bin:/usr/bin:/bin:$PATH
-        run: |
-          echo "🔍 Checking if Git is available before running Buildozer..."
-          if ! command -v git &> /dev/null; then
-            echo "❌ Git is still missing before Buildozer execution. Adding manually..."
-            export PATH=$PATH:/usr/bin:/usr/local/bin:/bin
-            source $HOME/.bashrc
-            if ! command -v git &> /dev/null; then
-              echo "❌ Git is completely missing. Exiting."
-              exit 1
-            fi
-          fi
-          echo "✅ Git is available, proceeding with Buildozer."
-          buildozer -v android debug
-
+      # مرحله ۳: Upload APK as artifact
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
