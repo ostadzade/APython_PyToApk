@@ -31,24 +31,30 @@ jobs:
       - name: Install Android SDK & AIDL
         run: |
           sudo apt update
-          sudo apt install -y openjdk-17-jdk unzip
+          sudo apt install -y openjdk-17-jdk unzip wget
+          
+          # ساخت دایرکتوری Android SDK
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          mkdir -p $ANDROID_HOME/cmdline-tools
           
           # دانلود Android Command Line Tools
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip -d $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/
+          unzip cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools/
           
-          # تنظیم مسیرها
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
-          mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
+          # تنظیم مسیر صحیح
+          mkdir -p $ANDROID_HOME/cmdline-tools/latest
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
           
-          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           
           # نصب SDK Manager و ابزارهای مورد نیاز
-          sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;31.0.0" "cmdline-tools;latest" "ndk;23.1.7779620"
-          sdkmanager --licenses
+          yes | sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;31.0.0" "cmdline-tools;latest" "ndk;23.1.7779620"
+          yes | sdkmanager --licenses
           echo "✅ Android SDK & AIDL installed successfully."
+
+      - name: Fix Buildozer SDK Path (if needed)
+        run: |
+          sed -i 's|tools/bin/sdkmanager|cmdline-tools/latest/bin/sdkmanager|g' buildozer.spec || echo "✅ No changes needed in buildozer.spec"
 
       - name: Initialize Buildozer
         run: |
