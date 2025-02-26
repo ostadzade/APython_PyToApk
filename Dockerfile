@@ -5,16 +5,17 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
 # نصب وابستگی‌های لازم
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    git \
-    zip \
-    unzip \
-    openjdk-17-jdk \
-    wget \
-    tzdata \  # نصب بسته tzdata
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y \
+        python3 \
+        python3-pip \
+        git \
+        zip \
+        unzip \
+        openjdk-17-jdk \
+        wget \
+        tzdata && \  # نصب بسته tzdata
+    rm -rf /var/lib/apt/lists/*
 
 # نصب Buildozer
 RUN pip3 install --upgrade Cython buildozer
