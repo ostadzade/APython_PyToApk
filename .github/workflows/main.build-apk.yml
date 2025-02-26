@@ -52,14 +52,19 @@ jobs:
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
           echo "✅ Android SDK & AIDL installed successfully."
 
-      - name: Fix Buildozer SDK Path (Force Update)
-        run: |
-          sed -i 's|tools/bin/sdkmanager|cmdline-tools/latest/bin/sdkmanager|g' buildozer.spec
-          cat buildozer.spec | grep sdkmanager || echo "✅ Path fixed successfully"
-
       - name: Initialize Buildozer
         run: |
           buildozer init
+          ls -lah
+
+      - name: Fix Buildozer SDK Path (Force Update)
+        run: |
+          if [ -f "buildozer.spec" ]; then
+            sed -i 's|tools/bin/sdkmanager|cmdline-tools/latest/bin/sdkmanager|g' buildozer.spec
+            echo "✅ buildozer.spec path fixed."
+          else
+            echo "⚠ buildozer.spec not found. Skipping fix."
+          fi
 
       - name: Build APK using Buildozer
         env:
