@@ -33,7 +33,7 @@ jobs:
           sudo apt update
           sudo apt install -y openjdk-17-jdk unzip wget
           
-          # ساخت دایرکتوری Android SDK
+          # تنظیم مسیر Android SDK
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           mkdir -p $ANDROID_HOME/cmdline-tools
           
@@ -41,26 +41,30 @@ jobs:
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
           unzip cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools/
           
-          # تنظیم مسیر صحیح
+          # تنظیم مسیر جدید SDK Manager
           mkdir -p $ANDROID_HOME/cmdline-tools/latest
           mv $ANDROID_HOME/cmdline-tools/cmdline-tools/* $ANDROID_HOME/cmdline-tools/latest/
           
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           
           # نصب SDK Manager و ابزارهای مورد نیاز
-          yes | sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;31.0.0" "cmdline-tools;latest" "ndk;23.1.7779620"
-          yes | sdkmanager --licenses
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;31.0.0" "cmdline-tools;latest" "ndk;23.1.7779620"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
           echo "✅ Android SDK & AIDL installed successfully."
 
-      - name: Fix Buildozer SDK Path (if needed)
+      - name: Fix Buildozer SDK Path (Force Update)
         run: |
-          sed -i 's|tools/bin/sdkmanager|cmdline-tools/latest/bin/sdkmanager|g' buildozer.spec || echo "✅ No changes needed in buildozer.spec"
+          sed -i 's|tools/bin/sdkmanager|cmdline-tools/latest/bin/sdkmanager|g' buildozer.spec
+          cat buildozer.spec | grep sdkmanager || echo "✅ Path fixed successfully"
 
       - name: Initialize Buildozer
         run: |
           buildozer init
 
       - name: Build APK using Buildozer
+        env:
+          ANDROID_HOME: $HOME/.buildozer/android/platform/android-sdk
+          PATH: $ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
         run: |
           buildozer -v android debug
 
