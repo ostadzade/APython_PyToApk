@@ -17,7 +17,13 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y git
-          git --version || echo "❌ Git installation failed!"
+          echo "🔍 Checking if Git is available..."
+          if ! command -v git &> /dev/null; then
+            echo "❌ Git is still missing. Exiting."
+            exit 1
+          fi
+          git --version
+          echo "✅ Git installed successfully."
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -40,12 +46,12 @@ jobs:
       - name: Verify Buildozer Installation
         run: |
           echo "🔍 Checking if Buildozer is available..."
-          which buildozer || echo "❌ Buildozer not found in PATH!"
-          buildozer --version || echo "❌ Failed to run buildozer!"
           if ! command -v buildozer &> /dev/null; then
             echo "❌ Buildozer is still missing. Exiting."
             exit 1
           fi
+          buildozer --version
+          echo "✅ Buildozer is available."
 
       - name: Install Android SDK & AIDL
         run: |
@@ -85,6 +91,12 @@ jobs:
           ANDROID_HOME: $HOME/.buildozer/android/platform/android-sdk
           PATH: $ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:/usr/local/bin:$PATH
         run: |
+          echo "🔍 Checking if Git is available before running Buildozer..."
+          if ! command -v git &> /dev/null; then
+            echo "❌ Git is still missing before Buildozer execution. Exiting."
+            exit 1
+          fi
+          echo "✅ Git is available, proceeding with Buildozer."
           buildozer -v android debug
 
       - name: Upload APK as artifact
