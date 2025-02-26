@@ -15,7 +15,7 @@ RUN apt-get update && \
         openjdk-17-jdk \
         wget \
         tzdata && \  # نصب بسته tzdata
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*  # حذف فایل‌های موقت apt
 
 # نصب Buildozer
 RUN pip3 install --upgrade Cython buildozer
