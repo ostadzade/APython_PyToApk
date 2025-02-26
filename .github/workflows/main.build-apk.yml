@@ -3,11 +3,11 @@ name: Build APK
 on:
   push:
     branches:
-      - main  # هر بار که تغییراتی در شاخه main push شود، این workflow اجرا می‌شود.
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # از یک ماشین مجازی Ubuntu استفاده می‌کند.
+    runs-on: ubuntu-latest
 
     steps:
       # مرحله ۱: چک‌اوت کدهای مخزن
@@ -18,24 +18,29 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # نسخه پایتون مورد نیاز خود را مشخص کنید.
+          python-version: '3.9'
 
       # مرحله ۳: نصب نیازمندی‌های پایتون
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install cython kivy buildozer  # نصب Cython، Kivy و Buildozer
+          pip install cython kivy buildozer
 
       # مرحله ۴: نصب Android SDK و Build-Tools
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          cmdline-tools-version: "latest"  # نصب cmdline-tools
-          build-tools-version: "30.0.3"   # نسخه Build-Tools مورد نیاز
-          platform-version: "30"          # نسخه پلتفرم اندروید مورد نیاز
-          ndk-version: "21.4.7075529"     # نسخه NDK مورد نیاز (اختیاری)
+          cmdline-tools-version: "latest"
+          build-tools-version: "30.0.3"
+          platform-version: "30"
+          ndk-version: "21.4.7075529"
 
-      # مرحله ۵: تنظیم متغیرهای محیطی
+      # مرحله ۵: نصب platform-tools
+      - name: Install platform-tools
+        run: |
+          echo "y" | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools"
+
+      # مرحله ۶: تنظیم متغیرهای محیطی
       - name: Setup environment variables
         run: |
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
@@ -43,30 +48,30 @@ jobs:
           echo "/usr/local/lib/android/sdk/tools/bin" >> $GITHUB_PATH
           echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
           echo "/usr/local/lib/android/sdk/build-tools/30.0.3" >> $GITHUB_PATH
+          echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
 
-      # مرحله ۶: تنظیم مسیر SDK برای Buildozer
+      # مرحله ۷: تنظیم مسیر SDK برای Buildozer
       - name: Configure Buildozer paths
         run: |
           mkdir -p ~/.buildozer/android/platform
           ln -sf /usr/local/lib/android/sdk ~/.buildozer/android/platform/android-sdk
 
-      # مرحله ۷: پیکربندی Buildozer
+      # مرحله ۸: پیکربندی Buildozer
       - name: Configure Buildozer
         run: |
           buildozer init
-          # اعمال تنظیمات لازم در فایل buildozer.spec
           sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas/' buildozer.spec
 
-      # مرحله ۸: ساخت APK
+      # مرحله ۹: ساخت APK
       - name: Build APK
         run: |
           export ANDROIDSDK="/usr/local/lib/android/sdk"
           export ANDROIDNDK="/usr/local/lib/android/sdk/ndk/21.4.7075529"
           buildozer -v android debug
 
-      # مرحله ۹: آپلود فایل APK به عنوان خروجی
+      # مرحله ۱۰: آپلود فایل APK به عنوان خروجی
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
-          path: bin/*.apk  # مسیر فایل APK ایجادشده
+          path: bin/*.apk
