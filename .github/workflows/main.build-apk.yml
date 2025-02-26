@@ -32,15 +32,22 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y openjdk-17-jdk unzip
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk
+          
+          # دانلود Android Command Line Tools
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip -d $HOME/.buildozer/android/platform/android-sdk/
-          mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools $HOME/.buildozer/android/platform/android-sdk/cmdline-tools-temp
+          unzip cmdline-tools.zip -d $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/
+          
+          # تنظیم مسیرها
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
-          mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools-temp/* $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
-          export PATH=$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin:$PATH
+          mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
+          
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          
+          # نصب SDK Manager و ابزارهای مورد نیاز
           sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;31.0.0" "cmdline-tools;latest" "ndk;23.1.7779620"
+          sdkmanager --licenses
           echo "✅ Android SDK & AIDL installed successfully."
 
       - name: Initialize Buildozer
