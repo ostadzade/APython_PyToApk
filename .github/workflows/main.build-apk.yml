@@ -24,7 +24,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install kivy buildozer  # نصب Kivy و Buildozer
+          pip install cython kivy buildozer  # نصب Cython، Kivy و Buildozer
 
       # مرحله ۴: پیکربندی Buildozer
       - name: Configure Buildozer
