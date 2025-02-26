@@ -3,62 +3,42 @@ name: Build APK
 on:
   push:
     branches:
-      - main  # هر بار که به شاخه main تغییراتی push شود، این workflow اجرا می‌شود.
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # اجرای فرآیند روی یک ماشین مجازی Ubuntu
+    runs-on: ubuntu-latest
 
     steps:
-      # مرحله ۱: چک‌اوت کدهای مخزن
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # مرحله ۲: تنظیم محیط پایتون
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # مشخص کردن نسخه پایتون مورد نیاز
+          python-version: '3.9'
 
-      # مرحله ۳: بررسی و نصب نیازمندی‌های پایتون
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           if [ -f "requirements.txt" ]; then pip install -r requirements.txt; else echo "⚠ requirements.txt not found!"; fi
 
-      # مرحله ۴: دیباگ دایرکتوری‌های فعلی
-      - name: Debug Directories
-        run: |
-          echo "📂 لیست دایرکتوری‌های فعلی:"
-          pwd
-          ls -lah
-
-      # مرحله ۵: دانلود ابزار PyToApk و بررسی صحت کلون شدن
       - name: Clone PyToApk
         run: |
           git clone https://github.com/APython-project/PyToApk.git
           if [ -d "PyToApk" ]; then echo "✅ PyToApk cloned successfully"; else echo "❌ Failed to clone PyToApk"; exit 1; fi
 
-      # مرحله ۶: بررسی وجود `build.py` در مخزن PyToApk
-      - name: Check for build.py
-        run: |
-          ls -lah PyToApk
-          if [ -f "PyToApk/build.py" ]; then echo "✅ build.py found"; else echo "❌ build.py not found!"; exit 1; fi
-
-      # مرحله ۷: ساخت APK و نمایش خطاهای احتمالی
       - name: Build APK
         run: |
           cd PyToApk
           python build.py apk --sourceDir ../ --buildDebug || { echo "❌ Build failed!"; exit 1; }
 
-      # مرحله ۸: بررسی موفقیت‌آمیز بودن ساخت `output.apk`
       - name: Check APK Output
         run: |
           if [ -f "PyToApk/output.apk" ]; then echo "✅ APK build successful"; else echo "❌ APK not found!"; exit 1; fi
 
-      # مرحله ۹: آپلود فایل APK به‌عنوان خروجی
       - name: Upload APK as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # نسخه جدید
         with:
           name: app-debug.apk
-          path: PyToApk/output.apk  # مسیر خروجی APK ساخته‌شده
+          path: PyToApk/output.apk
