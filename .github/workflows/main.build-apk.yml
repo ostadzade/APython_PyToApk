@@ -13,6 +13,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Install Git (Ensure Git is installed)
+        run: |
+          sudo apt update
+          sudo apt install -y git
+          git --version || echo "❌ Git installation failed!"
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -25,7 +31,7 @@ jobs:
 
       - name: Install Buildozer & dependencies
         run: |
-          sudo apt update && sudo apt install -y git zip unzip openjdk-17-jdk
+          sudo apt install -y zip unzip openjdk-17-jdk
           python -m pip install --upgrade Cython
           python -m pip install buildozer
           sudo ln -s $(python -c "import site; print(site.USER_BASE)")/bin/buildozer /usr/local/bin/buildozer || echo "✅ Buildozer already linked."
@@ -34,16 +40,16 @@ jobs:
       - name: Verify Buildozer Installation
         run: |
           echo "🔍 Checking if Buildozer is available..."
+          which buildozer || echo "❌ Buildozer not found in PATH!"
+          buildozer --version || echo "❌ Failed to run buildozer!"
           if ! command -v buildozer &> /dev/null; then
             echo "❌ Buildozer is still missing. Exiting."
             exit 1
           fi
-          buildozer --version || echo "❌ Failed to run buildozer!"
 
       - name: Install Android SDK & AIDL
         run: |
-          sudo apt update
-          sudo apt install -y openjdk-17-jdk unzip wget
+          sudo apt install -y unzip wget
           
           export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
           mkdir -p $ANDROID_HOME/cmdline-tools
