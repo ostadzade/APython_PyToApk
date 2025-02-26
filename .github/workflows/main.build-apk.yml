@@ -3,11 +3,11 @@ name: Build APK
 on:
   push:
     branches:
-      - main
+      - main  # هر بار که تغییراتی در شاخه main push شود، این workflow اجرا می‌شود.
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # از یک ماشین مجازی Ubuntu استفاده می‌کند.
 
     steps:
       # مرحله ۱: چک‌اوت کدهای مخزن
@@ -18,27 +18,29 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.9'  # نسخه پایتون مورد نیاز خود را مشخص کنید.
 
-      # مرحله ۳: نصب pip
-      - name: Upgrade pip
+      # مرحله ۳: نصب نیازمندی‌های پایتون
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install kivy buildozer  # نصب Kivy و Buildozer
 
-      # مرحله ۴: کلون کردن PyToApk با استفاده از توکن دسترسی
-      - name: Clone PyToApk
+      # مرحله ۴: پیکربندی Buildozer
+      - name: Configure Buildozer
         run: |
-          git clone https://${{ secrets.GH_TOKEN }}@github.com/APython-project/PyToApk.git
+          buildozer init
+          # اعمال تنظیمات لازم در فایل buildozer.spec
+          sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas/' buildozer.spec
 
       # مرحله ۵: ساخت APK
       - name: Build APK
         run: |
-          cd PyToApk
-          python build.py apk --sourceDir ../${{ github.repository }} --buildDebug
+          buildozer -v android debug
 
       # مرحله ۶: آپلود فایل APK به عنوان خروجی
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
-          path: PyToApk/output.apk
+          path: bin/*.apk  # مسیر فایل APK ایجادشده
