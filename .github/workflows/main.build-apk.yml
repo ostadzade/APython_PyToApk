@@ -26,19 +26,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install cython kivy buildozer  # نصب Cython، Kivy و Buildozer
 
-      # مرحله ۴: پیکربندی Buildozer
+      # مرحله ۴: نصب Android SDK و Build-Tools
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v2
+        with:
+          build-tools-version: "30.0.3"  # نسخه Build-Tools مورد نیاز
+          platform-version: "30"         # نسخه پلتفرم اندروید مورد نیاز
+          ndk-version: "21.4.7075529"    # نسخه NDK مورد نیاز (اختیاری)
+
+      # مرحله ۵: پیکربندی Buildozer
       - name: Configure Buildozer
         run: |
           buildozer init
           # اعمال تنظیمات لازم در فایل buildozer.spec
           sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas/' buildozer.spec
 
-      # مرحله ۵: ساخت APK
+      # مرحله ۶: ساخت APK
       - name: Build APK
         run: |
+          export ANDROIDSDK="/usr/local/lib/android/sdk"  # تنظیم مسیر Android SDK
+          export ANDROIDNDK="/usr/local/lib/android/sdk/ndk/21.4.7075529"  # تنظیم مسیر NDK
           buildozer -v android debug
 
-      # مرحله ۶: آپلود فایل APK به عنوان خروجی
+      # مرحله ۷: آپلود فایل APK به عنوان خروجی
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
