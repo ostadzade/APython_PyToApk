@@ -1,5 +1,9 @@
 FROM ubuntu:20.04
 
+# تنظیم منطقه زمانی به‌صورت پیش‌فرض
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
 # نصب وابستگی‌های لازم
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -9,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     openjdk-17-jdk \
     wget \
+    tzdata \  # نصب بسته tzdata
     && rm -rf /var/lib/apt/lists/*
 
 # نصب Buildozer
