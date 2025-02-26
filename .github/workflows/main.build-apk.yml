@@ -19,8 +19,10 @@ jobs:
           sudo apt install -y git
           echo "🔍 Checking if Git is available..."
           if ! command -v git &> /dev/null; then
-            echo "❌ Git is still missing. Exiting."
-            exit 1
+            echo "❌ Git is still missing. Adding it manually to PATH..."
+            export PATH=$PATH:/usr/bin:/usr/local/bin:/bin
+            echo "export PATH=$PATH:/usr/bin:/usr/local/bin:/bin" >> $HOME/.bashrc
+            source $HOME/.bashrc
           fi
           git --version
           echo "✅ Git installed successfully."
@@ -89,12 +91,17 @@ jobs:
       - name: Build APK using Buildozer
         env:
           ANDROID_HOME: $HOME/.buildozer/android/platform/android-sdk
-          PATH: $ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:/usr/local/bin:$PATH
+          PATH: $ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:/usr/local/bin:/usr/bin:/bin:$PATH
         run: |
           echo "🔍 Checking if Git is available before running Buildozer..."
           if ! command -v git &> /dev/null; then
-            echo "❌ Git is still missing before Buildozer execution. Exiting."
-            exit 1
+            echo "❌ Git is still missing before Buildozer execution. Adding manually..."
+            export PATH=$PATH:/usr/bin:/usr/local/bin:/bin
+            source $HOME/.bashrc
+            if ! command -v git &> /dev/null; then
+              echo "❌ Git is completely missing. Exiting."
+              exit 1
+            fi
           fi
           echo "✅ Git is available, proceeding with Buildozer."
           buildozer -v android debug
