@@ -39,7 +39,7 @@ jobs:
 
       # مرحله ۶: آپلود فایل APK به عنوان خروجی
       - name: Upload APK as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # استفاده از نسخه v4
         with:
           name: app-debug.apk
           path: PyToApk/output.apk  # مسیر فایل APK ایجادشده
