@@ -18,15 +18,22 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           if [ -f "requirements.txt" ]; then pip install -r requirements.txt; else echo "⚠ requirements.txt not found!"; fi
 
-      - name: Build APK (Using Buildozer)
+      - name: Install Buildozer & dependencies
         run: |
-          pip install buildozer
+          sudo apt update && sudo apt install -y git zip unzip openjdk-17-jdk
+          pip install --user --upgrade Cython buildozer
+
+      - name: Initialize Buildozer
+        run: |
           buildozer init
+
+      - name: Build APK using Buildozer
+        run: |
           buildozer -v android debug
 
       - name: Upload APK as artifact
