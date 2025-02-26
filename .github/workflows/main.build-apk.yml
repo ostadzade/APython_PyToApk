@@ -44,21 +44,27 @@ jobs:
           echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
           echo "/usr/local/lib/android/sdk/build-tools/30.0.3" >> $GITHUB_PATH
 
-      # مرحله ۶: پیکربندی Buildozer
+      # مرحله ۶: تنظیم مسیر SDK برای Buildozer
+      - name: Configure Buildozer paths
+        run: |
+          mkdir -p ~/.buildozer/android/platform
+          ln -sf /usr/local/lib/android/sdk ~/.buildozer/android/platform/android-sdk
+
+      # مرحله ۷: پیکربندی Buildozer
       - name: Configure Buildozer
         run: |
           buildozer init
           # اعمال تنظیمات لازم در فایل buildozer.spec
           sed -i 's/^source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas/' buildozer.spec
 
-      # مرحله ۷: ساخت APK
+      # مرحله ۸: ساخت APK
       - name: Build APK
         run: |
           export ANDROIDSDK="/usr/local/lib/android/sdk"
           export ANDROIDNDK="/usr/local/lib/android/sdk/ndk/21.4.7075529"
           buildozer -v android debug
 
-      # مرحله ۸: آپلود فایل APK به عنوان خروجی
+      # مرحله ۹: آپلود فایل APK به عنوان خروجی
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
