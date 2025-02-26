@@ -1,0 +1,45 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main  # هر بار که تغییراتی در شاخه main push شود، این workflow اجرا می‌شود.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # از یک ماشین مجازی Ubuntu استفاده می‌کند.
+
+    steps:
+      # مرحله ۱: چک‌اوت کدهای مخزن
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # مرحله ۲: تنظیم محیط پایتون
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'  # نسخه پایتون مورد نیاز خود را مشخص کنید.
+
+      # مرحله ۳: نصب نیازمندی‌های پایتون
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # اگر فایل requirements.txt دارید.
+
+      # مرحله ۴: دانلود ابزار PyToApk
+      - name: Clone PyToApk
+        run: |
+          git clone https://github.com/APython-project/PyToApk.git
+
+      # مرحله ۵: ساخت APK
+      - name: Build APK
+        run: |
+          cd PyToApk
+          python build.py apk --sourceDir ../${{ github.repository }} --buildDebug
+
+      # مرحله ۶: آپلود فایل APK به عنوان خروجی
+      - name: Upload APK as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug.apk
+          path: PyToApk/output.apk  # مسیر فایل APK ایجادشده
