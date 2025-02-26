@@ -28,6 +28,21 @@ jobs:
           sudo apt update && sudo apt install -y git zip unzip openjdk-17-jdk
           pip install --user --upgrade Cython buildozer
 
+      - name: Install Android SDK & AIDL
+        run: |
+          sudo apt update
+          sudo apt install -y openjdk-17-jdk unzip
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip cmdline-tools.zip -d $HOME/.buildozer/android/platform/android-sdk/
+          mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools $HOME/.buildozer/android/platform/android-sdk/cmdline-tools-temp
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+          mv $HOME/.buildozer/android/platform/android-sdk/cmdline-tools-temp/* $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
+          export PATH=$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin:$PATH
+          export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+          sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;31.0.0" "cmdline-tools;latest" "ndk;23.1.7779620"
+          echo "✅ Android SDK & AIDL installed successfully."
+
       - name: Initialize Buildozer
         run: |
           buildozer init
@@ -40,4 +55,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
-          path: bin/*.apk  # مسیر خروجی برای buildozer
+          path: bin/*.apk
